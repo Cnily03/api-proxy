@@ -2,6 +2,7 @@ import { ToastProvider } from "@heroui/react";
 import { Navigate, Route, Routes } from "react-router";
 import Layout from "@/components/Layout";
 import LoginPage from "@/pages/LoginPage";
+import NotFoundPage from "@/pages/NotFoundPage";
 import RulesPage from "@/pages/RulesPage";
 import UsersPage from "@/pages/UsersPage";
 import { useAuth } from "@/utils/auth";
@@ -44,7 +45,7 @@ export default function App() {
             }
           />
         </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </>
   );
