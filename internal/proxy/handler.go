@@ -23,7 +23,9 @@ type Handler struct {
 }
 
 // Builds the reverse-proxy handler, preparing its two TLS transports
-// and wrapping it with permissive CORS middleware.
+// and wrapping it with permissive CORS middleware. A built-in /ping
+// route short-circuits the pipeline (ahead of CORS and rule lookup)
+// so health checks work regardless of configuration or method.
 func NewHandler(s *service.RuleService) http.Handler {
 	baseTransport := cloneDefaultTransport()
 	insecureTransport := cloneDefaultTransport()
@@ -34,7 +36,20 @@ func NewHandler(s *service.RuleService) http.Handler {
 		secureHTTPClient:   baseTransport,
 		insecureHTTPClient: insecureTransport,
 	}
-	return withCORS(http.HandlerFunc(h.serveHTTP))
+	return withCORS(withPing(http.HandlerFunc(h.serveHTTP)))
+}
+
+// Middleware that answers "pong"
+func withPing(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/ping" {
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("pong"))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // Middleware that attaches permissive CORS headers so the reverse

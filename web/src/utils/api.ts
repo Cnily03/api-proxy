@@ -84,9 +84,13 @@ export async function changePassword(oldPassword: string, newPassword: string) {
     .json<{ status: string }>();
 }
 
-// ── Proxy ──
-export function getProxyEndpoint() {
-  return api.get("proxy/endpoint").json<{ endpoint: string }>();
+// ── Info ──
+export type Info = {
+  endpoint: string;
+};
+
+export function getInfo() {
+  return api.get("info").json<Info>();
 }
 
 // ── Rules ──

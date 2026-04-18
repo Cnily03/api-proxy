@@ -14,8 +14,8 @@ import (
 // Collection of service dependencies used by the REST endpoints under
 // /api, grouping rule and auth services on one struct for method
 // receivers. proxyEndpoint is the public base URL of the reverse
-// proxy server and is served from the protected /proxy/endpoint
-// endpoint so the admin UI can display the current forwarding target.
+// proxy server and is served from the protected /info endpoint so
+// the admin UI can display the current forwarding target.
 type Handler struct {
 	rules         *service.RuleService
 	auth          *service.AuthService
@@ -36,9 +36,9 @@ func Setup(rules *service.RuleService, auth *service.AuthService, proxyEndpoint 
 	mux.HandleFunc("POST /api/auth/login", h.handleLogin)
 
 	// Protected routes
+	mux.HandleFunc("GET /api/info", h.requireAuth(h.handleGetInfo))
 	mux.HandleFunc("GET /api/auth/me", h.requireAuth(h.handleGetMe))
 	mux.HandleFunc("POST /api/auth/password", h.requireAuth(h.handleChangePassword))
-	mux.HandleFunc("GET /api/proxy/endpoint", h.requireAuth(h.handleGetProxyEndpoint))
 
 	// Rules (read: any user; write: admin)
 	mux.HandleFunc("GET /api/rules", h.requireAuth(h.handleListRules))
@@ -63,11 +63,12 @@ func (h *Handler) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-// GET /api/proxy/endpoint (protected): returns the public base URL of
-// the reverse proxy server so the admin UI can display and copy it.
-// Kept behind requireAuth because exposing the endpoint to anonymous
-// callers would leak deployment topology.
-func (h *Handler) handleGetProxyEndpoint(w http.ResponseWriter, _ *http.Request) {
+// GET /api/info (protected): returns deployment information about
+// the running server (currently the public base URL of the reverse
+// proxy) so the admin UI can display and copy it. Kept behind
+// requireAuth because exposing the endpoint to anonymous callers
+// would leak deployment topology.
+func (h *Handler) handleGetInfo(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"endpoint": h.proxyEndpoint})
 }
 

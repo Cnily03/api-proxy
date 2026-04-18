@@ -233,7 +233,7 @@ export default function RulesPage() {
   useEffect(() => {
     let cancelled = false;
     api
-      .getProxyEndpoint()
+      .getInfo()
       .then(({ endpoint }) => {
         if (!cancelled) setProxyEndpoint(endpoint);
       })
