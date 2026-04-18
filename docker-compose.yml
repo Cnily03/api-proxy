@@ -1,0 +1,18 @@
+services:
+  api-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: api-proxy:latest
+    container_name: api-proxy
+    restart: unless-stopped
+    ports:
+      - "${ADMIN_PORT:-8050}:80"
+      - "${PROXY_PORT:-8060}:8080"
+    volumes:
+      - api-proxy-data:/app/data
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+
+volumes:
+  api-proxy-data:

@@ -1,0 +1,103 @@
+name: Docker
+
+on:
+  release:
+    types:
+      - published
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Docker image name and tag"
+        required: true
+        default: "api-proxy:latest"
+      publish_tag:
+        description: "ghcr.io IMAGE or TAG"
+        required: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # Build and export the docker image
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build
+        id: build
+        run: |
+          input_image="${{ inputs.image }}"
+          if [[ -z "$input_image" ]]; then
+            input_image="api-proxy:latest"
+          fi
+          image="$(echo $input_image | tr -d '[:space:]')"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+          echo "Building: $image"
+          docker build -t "$image" .
+
+      - name: Export image
+        id: export
+        run: |
+          image='${{ steps.build.outputs.image }}'
+          output_fn="$(echo "$image" | tr ':' '_')"
+          echo "output_fn=$output_fn" >> "$GITHUB_OUTPUT"
+          docker save "$image" -o '${{ runner.temp }}/image.tar'
+          sha256sum '${{ runner.temp }}/image.tar' > '${{ runner.temp }}/image.tar.sha256'
+
+      - name: Upload artifact
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.export.outputs.output_fn }}
+          path: |
+            ${{ runner.temp }}/image.tar
+            ${{ runner.temp }}/image.tar.sha256
+          compression-level: 9
+          retention-days: 1
+
+      - name: Push to ghcr.io (dispatch)
+        if: ${{ inputs.publish_tag != '' }}
+        run: |
+          image="${{ steps.build.outputs.image }}"
+          echo "Pushing: $image"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          if [[ '${{ inputs.publish_tag }}' != *:* ]]; then
+            image_suffix=":${{ inputs.publish_tag }}"
+          else
+            image_suffix="/${{ inputs.publish_tag }}"
+          fi
+          push_image="ghcr.io/${{ github.repository }}${image_suffix}"
+          push_image="$(echo "$push_image" | tr '[:upper:]' '[:lower:]')"
+          docker tag "$image" "$push_image"
+          docker push "$push_image"
+          echo "Pushed: $image to $push_image"
+
+      - name: Push to ghcr.io (release)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          image="${{ steps.build.outputs.image }}"
+          echo "Pushing: $image"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          release_tag="${{ github.event.release.tag_name }}"
+          if [ -z "$release_tag" ]; then
+            release_tag="${{ github.ref_name }}"
+          fi
+          push_image_1="ghcr.io/${{ github.repository }}:$release_tag"
+          push_image_2="ghcr.io/${{ github.repository }}:latest"
+          push_images=("$push_image_1" "$push_image_2")
+          for push_image in "${push_images[@]}"; do
+            push_image="$(echo "$push_image" | tr '[:upper:]' '[:lower:]')"
+            docker tag "$image" "$push_image"
+            docker push "$push_image"
+            echo "Pushed: $image to $push_image"
+          done

@@ -1,0 +1,27 @@
+.git
+.gitignore
+.vscode
+.idea
+
+# Build outputs
+bin/
+data/
+*.exe
+*.log
+
+# Frontend build artefacts & deps
+web/node_modules/
+web/dist/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Docs not needed at build time
+*.md
+!README.md
+LICENSE
+
+# Docker assets themselves
+Dockerfile
+.dockerignore
