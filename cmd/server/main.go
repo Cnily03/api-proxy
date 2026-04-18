@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -55,7 +56,9 @@ func main() {
 		log.Fatalf("load server config failed: %v", err)
 	}
 
-	adminHandler := network.Setup(ruleSvc, authSvc, *staticDir)
+	proxyEndpoint := resolveProxyEndpoint(*proxyPort)
+
+	adminHandler := network.Setup(ruleSvc, authSvc, *staticDir, proxyEndpoint)
 	proxyHandler := proxy.NewHandler(ruleSvc)
 
 	adminServer := &http.Server{
@@ -101,4 +104,15 @@ func main() {
 	if err := proxyServer.Shutdown(shutdownCtx); err != nil {
 		log.Printf("shutdown proxy server error: %v", err)
 	}
+}
+
+// Resolves the reverse-proxy endpoint advertised to the admin panel.
+// Uses the PROXY_ENDPOINT environment variable verbatim when set;
+// otherwise falls back to http://localhost:<proxyPort>. The trailing
+// slash, if any, is stripped so callers can append paths cleanly.
+func resolveProxyEndpoint(proxyPort int) string {
+	if v := os.Getenv("PROXY_ENDPOINT"); v != "" {
+		return strings.TrimRight(v, "/")
+	}
+	return fmt.Sprintf("http://localhost:%d", proxyPort)
 }

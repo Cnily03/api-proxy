@@ -84,6 +84,11 @@ export async function changePassword(oldPassword: string, newPassword: string) {
     .json<{ status: string }>();
 }
 
+// ── Proxy ──
+export function getProxyEndpoint() {
+  return api.get("proxy/endpoint").json<{ endpoint: string }>();
+}
+
 // ── Rules ──
 export type Rule = {
   id: number;

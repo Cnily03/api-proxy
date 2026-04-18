@@ -12,11 +12,12 @@ import (
 // Builds the admin panel's top-level HTTP handler: mounts the /api
 // routes and, when staticDir is non-empty, serves static files from
 // that directory without directory listings; otherwise non-API paths
-// return 404.
-func Setup(rules *service.RuleService, auth *service.AuthService, staticDir string) http.Handler {
+// return 404. proxyEndpoint is the public base URL of the reverse
+// proxy returned by GET /api/proxy/endpoint.
+func Setup(rules *service.RuleService, auth *service.AuthService, staticDir, proxyEndpoint string) http.Handler {
 	mux := http.NewServeMux()
 
-	mux.Handle("/api/", api.Setup(rules, auth))
+	mux.Handle("/api/", api.Setup(rules, auth, proxyEndpoint))
 
 	if staticDir != "" {
 		fs := http.FileServer(noDirList(http.Dir(staticDir)))

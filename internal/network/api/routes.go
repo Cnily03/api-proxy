@@ -13,17 +13,20 @@ import (
 
 // Collection of service dependencies used by the REST endpoints under
 // /api, grouping rule and auth services on one struct for method
-// receivers.
+// receivers. proxyEndpoint is the public base URL of the reverse
+// proxy server and is served from the protected /proxy/endpoint
+// endpoint so the admin UI can display the current forwarding target.
 type Handler struct {
-	rules *service.RuleService
-	auth  *service.AuthService
+	rules         *service.RuleService
+	auth          *service.AuthService
+	proxyEndpoint string
 }
 
 // Registers all /api routes (health, auth, rules, users) on a fresh
 // ServeMux and returns it, wiring each handler to the appropriate
 // auth middleware.
-func Setup(rules *service.RuleService, auth *service.AuthService) http.Handler {
-	h := &Handler{rules: rules, auth: auth}
+func Setup(rules *service.RuleService, auth *service.AuthService, proxyEndpoint string) http.Handler {
+	h := &Handler{rules: rules, auth: auth, proxyEndpoint: proxyEndpoint}
 	mux := http.NewServeMux()
 
 	// Health check (public)
@@ -35,6 +38,7 @@ func Setup(rules *service.RuleService, auth *service.AuthService) http.Handler {
 	// Protected routes
 	mux.HandleFunc("GET /api/auth/me", h.requireAuth(h.handleGetMe))
 	mux.HandleFunc("POST /api/auth/password", h.requireAuth(h.handleChangePassword))
+	mux.HandleFunc("GET /api/proxy/endpoint", h.requireAuth(h.handleGetProxyEndpoint))
 
 	// Rules (read: any user; write: admin)
 	mux.HandleFunc("GET /api/rules", h.requireAuth(h.handleListRules))
@@ -57,6 +61,14 @@ func Setup(rules *service.RuleService, auth *service.AuthService) http.Handler {
 // probes to verify the admin API is reachable.
 func (h *Handler) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// GET /api/proxy/endpoint (protected): returns the public base URL of
+// the reverse proxy server so the admin UI can display and copy it.
+// Kept behind requireAuth because exposing the endpoint to anonymous
+// callers would leak deployment topology.
+func (h *Handler) handleGetProxyEndpoint(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"endpoint": h.proxyEndpoint})
 }
 
 // ── Auth middleware ─────────────────────────────────────────

@@ -62,5 +62,7 @@ EXPOSE 80 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl --fail --silent --show-error --max-time 3 http://127.0.0.1/api/healthz || exit 1
 
+ENV PROXY_ENDPOINT=http://localhost:80
+
 ENTRYPOINT ["/app/api-proxy"]
 CMD ["-b", "80", "-p", "8080", "-d", "/app/web"]

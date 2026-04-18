@@ -38,8 +38,6 @@ function ConfirmDeleteButton({ onDelete, isDisabled }: { onDelete: () => void; i
   );
 }
 
-const PROXY_ENDPOINT = (import.meta.env.VITE_PROXY_ENDPOINT as string | undefined) ?? "http://localhost:8060";
-
 type RuleDraft = Omit<Rule, "id">;
 
 const emptyDraft: RuleDraft = {
@@ -213,6 +211,7 @@ export default function RulesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState<RuleDraft | null>(null);
   const [loading, setLoading] = useState(false);
+  const [proxyEndpoint, setProxyEndpoint] = useState("");
 
   const isEditing = useMemo(() => editingId !== null && editDraft !== null, [editingId, editDraft]);
 
@@ -230,6 +229,21 @@ export default function RulesPage() {
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .getProxyEndpoint()
+      .then(({ endpoint }) => {
+        if (!cancelled) setProxyEndpoint(endpoint);
+      })
+      .catch((err) => {
+        if (!cancelled) toast.danger(err instanceof Error ? err.message : String(err));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function beginEdit(row: Rule) {
     setEditingId(row.id);
@@ -318,9 +332,9 @@ export default function RulesPage() {
         <div className="flex items-center gap-2 text-sm text-muted mb-4">
           <p>
             <span className="font-semibold">转发端点：</span>
-            <span>{PROXY_ENDPOINT}</span>
+            <span>{proxyEndpoint || "加载中..."}</span>
           </p>
-          <CopyButton text={PROXY_ENDPOINT} />
+          {proxyEndpoint ? <CopyButton text={proxyEndpoint} /> : null}
         </div>
 
         {rows.length === 0 ? (

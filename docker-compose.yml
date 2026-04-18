@@ -12,6 +12,7 @@ services:
     volumes:
       - api-proxy-data:/app/data
     environment:
+      PROXY_ENDPOINT: ${PROXY_ENDPOINT:-http://localhost:8080}
       TZ: ${TZ:-Asia/Shanghai}
 
 volumes:
