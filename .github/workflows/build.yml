@@ -2,9 +2,8 @@ name: Build
 
 on:
   push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    types: [review_requested]
   workflow_dispatch:
 
 jobs:
