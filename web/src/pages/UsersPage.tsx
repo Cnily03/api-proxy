@@ -165,7 +165,14 @@ export default function UsersPage() {
               <Table.Column>角色</Table.Column>
               <Table.Column className="text-right">操作</Table.Column>
             </Table.Header>
-            <Table.Body items={users} renderEmptyState={() => <span className="text-muted">暂无用户</span>}>
+            <Table.Body
+              items={users}
+              renderEmptyState={() => (
+                <div className="text-center py-4 w-full">
+                  <span className="text-muted">暂无用户</span>
+                </div>
+              )}
+            >
               {(u) => (
                 <Table.Row id={u.id}>
                   <Table.Cell>#{u.id}</Table.Cell>
