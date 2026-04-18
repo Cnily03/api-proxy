@@ -1,0 +1,27 @@
+# Go
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Database
+data/*
+*.db
+*.sqlite
+*.sqlite3
+
+# Frontend
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Environment
+.env
+
+# Logs
+*.log
+
+.idea/
+.DS_Store/
+Thumbs.db

@@ -1,0 +1,14 @@
+{
+  "files.associations": {
+    "*.css": "tailwindcss",
+  },
+  "biome.enabled": true,
+  "biome.lsp.bin": "./web/node_modules/.bin/biome",
+  "biome.configurationPath": "./web/biome.json",
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+}
