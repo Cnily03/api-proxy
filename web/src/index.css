@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@plugin "@iconify/tailwind4";
+
+/* Modal heading style */
+.modal__heading {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+/* Modal overflow fix for input focus ring */
+.modal__body {
+  overflow: visible;
+}
+
+.modal__dialog {
+  overflow: visible;
+}
+
+/* Toast must be above modal backdrop */
+.toast-region {
+  z-index: 9999;
+}

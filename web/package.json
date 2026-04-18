@@ -1,0 +1,38 @@
+{
+  "name": "api-proxy-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "postinstall": "biome migrate --write || true",
+    "lint": "biome check",
+    "format": "biome check --write",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@heroui/react": "^3.0.2",
+    "@heroui/styles": "^3.0.2",
+    "framer-motion": "^12.38.0",
+    "ky": "^2.0.1",
+    "nanoid": "^5.1.9",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router": "^7.14.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.12",
+    "@iconify-json/mdi": "^1.2.3",
+    "@iconify/tailwind4": "^1.2.3",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.8"
+  },
+  "packageManager": "pnpm@10.5.2"
+}
